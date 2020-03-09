@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html ng-app="listaTelefonica">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="lib/angular.js"></script>
+    <style>
+        .jumbotron{
+            width: 50%;
+            text-align: center;
+            margin: auto auto;
+            margin-top: 30px;
+        }
+        .checked{
+            background-color: yellow;
+        }
+    </style>
+
+    <script>
+        //cria módulo
+        angular.module("listaTelefonica", []);
+        //localiza módulo //o scope é injetado para conversar com a view
+        angular.module("listaTelefonica").controller("listaTelefonicaCtrl", function ($scope, $filter, uppercaseFilter, $http) {
+            scope = $scope; //view e controller tem acesso ao scope
+            scope.msg = "Lista Telefônica";
+            scope.contatos = new Array(
+                {nome: $filter('uppercase')("Pedro"), telefone: "99998888", data: new Date(), operadora:{nome:"Oi"}},
+                {nome: uppercaseFilter("João"), telefone: "77778888", data: new Date(), operadora:{nome:"Vivo"}},
+                {nome:"Carla", telefone: "99992222",data: new Date(),  operadora:{nome:"Tim"}}
+            );
+            scope.adicionarContato = function (contato){
+                scope.contatos.push(contato);
+                delete scope.contato;
+                //scope.contatoForm.$setPristine();
+            };
+
+            var listBooks = function(){
+                $http({
+                    url: "http://localhost:8000/api/v1/books",
+                    method: "GET",
+                    withCredentials: true,
+                    headers: {
+                        'Authorization': 'Bearer 123456'
+                    }
+                });
+            }
+            /* 
+            ng-Click - Forma 1
+            scope.adicionarContato = function (){
+                scope.contatos.push({nome: scope.nome, telefone: scope.telefone});
+            };
+            ng-Click - Forma 2
+            scope.adicionarContato = function (nome, telefone){
+                scope.contatos.push({nome: nome, telefone: ,telefone});
+            };
+            */
+    //filter permite filtrar os elementos de um array a partir de um teste feito em uma função
+    //Abaixo, por exemplo, a lista de contatos é preenchida apenas com aqueles que NÂO estão marcados com 
+    //contato.selecionado = true. O próprio filter faz o laço para iterar por todos os elementos do array
+            scope.apagarContatos = function (contatos){
+                scope.contatos = contatos.filter(function (contato){
+                    if(!contato.selecionado) return contato;               
+                });
+            };
+            scope.operadoras = new Array(
+                {nome:"Claro", codigo: "21", categoria: "Celular", preco: 2},
+                {nome:"Tim", codigo: "41", categoria: "Celular", preco: 3},
+                {nome:"Vivo", codigo: "15", categoria: "Celular", preco: 2},
+                {nome:"Embratel", codigo: "21", categoria: "Fixo", preco: 1},
+                {nome:"GVT", codigo: "25", categoria: "Fixo", preco: 1}
+            );
+            scope.isContatoSelecionado = function (contatos) {
+                return contatos.some(function (contato){
+                    return contato.selecionado;
+                });
+            }
+            $scope.ordenarPor = function(campo){
+                $scope.criterio = campo;
+                $scope.reverse = !$scope.reverse;
+            }
+
+            listBooks();
+        })
+    </script>
+</head>
+<body ng-controller="listaTelefonicaCtrl">
+    <div class="jumbotron">
+       <h3 ng-bind="msg"></h3>
+       <input class="form-control" type="text" ng-model="busca" placeholder="Busca por...">
+       <table ng-show="contatos.length > 0" class="table ">
+           <tr>
+               <th></th>
+               <th><a href="" ng-click="ordenarPor('nome')">Nome</a></th>
+               <th><a href="" ng-click="ordenarPor('telefone')">Telefone</a></th>
+               <th>Operadora</th>
+               <th>Data</th>
+           </tr>
+           <tr ng-class="{checked: contato.selecionado}" ng-repeat="contato in contatos | filter:busca | orderBy:criterio:reverse">
+               <td><input type="checkbox" ng-model="contato.selecionado"/></td>
+                <td>{{contato.nome}}</td>
+                <td>{{contato.telefone}}</td>
+                <td>{{contato.operadora.nome | lowercase}}</td>
+                <td>{{contato.data | date:'dd/MM/yyyy hh:mm:ss'}}</td>
+           </tr>
+       </table>
+       <hr/>
+       Válido: {{contatoForm.$valid}}
+       Inválido: {{contatoForm.$invalid}}
+        <form name="contatoForm">
+            <input class="form-control" type="text" ng-model="contato.nome" name="nome" placeholder="Nome" required ng-minlength="10"/>
+            <input class="form-control" type="text" ng-model="contato.telefone" name="telefone" placeholder="Telefone" required ng-pattern="/^\d{4,5}-\d{4}$/"/>
+            <select class="form-control" ng-model="contato.operadora" ng-options="operadora.nome +' ('+ (operadora.preco | currency) + ') ' group by operadora.categoria for operadora in operadoras | orderBy:'nome'">
+                <option value="">Selecione uma operadora</option>
+            </select>
+        </form>
+        <!-- criticar Todos os erros -->
+        <!--div class="alert alert-danger" ng-show="contatoForm.nome.$invalid && contatoForm.nome.$dirty">
+            Preencha Nome, por favor
+        </div-->
+        <div class="alert alert-danger" ng-show="contatoForm.nome.$error.required && contatoForm.nome.$dirty">
+            Preencha Nome, por favor
+        </div>
+        <div class="alert alert-danger" ng-show="contatoForm.nome.$error.minlength">
+            Nome deve ter pelo menos 10 caracteres
+        </div>
+        <div class="alert alert-danger" ng-show="contatoForm.telefone.$error.$required && contatoForm.telefone.$dirty">
+            Preencha Telefone, por favor
+        </div>
+        <div class="alert alert-danger" ng-show="contatoForm.telefone.$error.pattern">
+            Formato errado para telefone
+        </div>
+        <button class="btn btn-primary btn-block" ng-click="adicionarContato(contato)" ng-disabled="contatoForm.$invalid">Adicionar Contato</button>
+        <button class="btn btn-danger btn-block" ng-click="apagarContatos(contatos)" ng-if="isContatoSelecionado(contatos)">Remover Contato</button>
+        
+       <!--
+       Forma 1 do ng-click    
+        input class="form-control" type="text" ng-model="nome" placeholder="Nome"/>
+       <input class="form-control" type="text" ng-model="telefone" placeholder="Telefone"/>
+       <button class="btn btn-primary btn-block" ng-click="adicionarContato()">Adicionar Contato</button>
+       Até aqui Forma 1 do ng-click
+       Button abaixo na Forma 2
+       <button class="btn btn-primary btn-block" ng-click="adicionarContato(nome, telefone)">Adicionar Contato</button-->
+    </div>
+    <br/> 
+    <div ng-include="'footer.html'"></div>
+</body>
+</html>
