@@ -1,1 +1,147 @@
-<a href="books.html" class="btn btn-info btn-sm"> Livros</a>
+<!DOCTYPE html>
+<html ng-app="bookAdd">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="lib/angular.js"></script>
+    <style>
+        input[type='file'] {
+            display: none
+        }
+        .input-wrapper label {
+            background-color: #3498db;
+            border-radius: 5px;
+            color: #fff;
+            margin: 10px;
+            padding: 6px 20px
+        }
+
+        .input-wrapper label:hover {
+            background-color: #2980b9
+        }
+    </style>
+
+    <script>
+        angular.module("bookAdd", []);
+        angular.module("bookAdd").directive('ngFile', ['$parse', function ($parse) {
+            return {
+                restrict: 'A',
+                link: function(scope, element, attrs) {
+                    element.bind('change', function(){
+
+                        $parse(attrs.ngFile).assign(scope,element[0].files)
+                        scope.$apply();
+                    });
+                }
+            };
+        }]);
+
+        angular.module("bookAdd").controller("bookAddCtrl", function ($scope, $http) {
+            scope = $scope; 
+            scope.msg = "Adicionar Livro";
+
+            var listAuthors = function(){
+                $http.get('http://localhost:8000/api/v1/authors', {
+                    headers: {
+                        'Authorization': 'Bearer 123456'
+                    }
+                }).then(function(result) {
+                    console.log(result);
+                    scope.authors = result.data;
+                });
+            }
+
+            scope.addBook = function (book){
+                formData = new FormData();
+                formData.append("image", scope.fileBook[0]);
+                let data = {book: book, formData: formData};
+
+                console.log(data);
+
+                /*$http.post('http://localhost:8000/api/v1/saveBooks', 
+                    params: {
+                        book: book, 
+                    },
+                    {
+                    headers: {
+                        'Authorization': 'Bearer 123456'
+                    }
+                }).then(function(result) {
+                    delete scope.book;
+                    scope.addBookForm.$setPristine();
+                    console.log(result);
+                }).catch(function(result) {
+                    console.log(result.data);
+                });*/
+            };
+
+            $('#input_file').change(function() {
+                $('#file_name').html(this.value);
+            });
+
+            listAuthors();
+        })
+    </script>
+</head>
+<body ng-controller="bookAddCtrl">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <ol class="breadcrumb panel-heading" style="background: #efc050">
+                        <li class="active" style="color:#616161; font-weight:bold" ng-bind="msg | uppercase"></li>
+                    </ol>
+                    <div class="panel-body">
+                        <form name="addBookForm" method="POST" enctype="multipart/form-data">
+                            <div class="alert alert-danger" ng-show="addBookForm.title.$error.required && addBookForm.title.$dirty">
+                                Preencha o Título, por favor
+                            </div>
+                            <!--div class="alert alert-danger" ng-show="addBookForm.authors.$error.required && addBookForm.authors.$dirty">
+                                Selecione ao menos um autor, por favor
+                            </div-->
+                            <div class="form-group">
+                                  <label for="title">Título</label>
+                                <input type="text" class="form-control" ng-model="book.title" name="title" id="title" placeholder="Título">
+                            </div>
+                           
+                            <div class="form-group">
+                                <label for="description">Descrição</label>
+                                <textarea class="form-control" rows="3" ng-model="book.description" name="description" id="description"></textarea>
+                            </div>
+    
+                            <div class="form-group">
+                                <label for="authors">Autores</label>
+                                <select multiple class="form-control" name="authors"
+                                    ng-model="book.authors" placeholder="Linha de Cuidado" no-change-placeholder>
+                                    <option ng-repeat="author in authors | orderBy:'name'" ng-value="author.id">{{author.name + " " + author.surname}}</option>
+                                </select>
+                            </div>
+    
+                            <!--div class="control-group input-images"> 
+                                 <label for="image">Capa do Livro</label>                                                       
+                                <div class="controls">
+                                    <input ng-model="book.image" name="image" type="file">
+                                </div>
+                            </div-->
+
+                            <div class='input-wrapper'>
+                                <label for='input_file' class="fa fa-book">
+                                    Capa do Livro
+                                </label>
+                                <input id='input_file' ng-file='fileBook' name="image" type='file' value='' />
+                                <span id='file_name'></span>
+                            </div>
+                           
+                            <br />
+                            <button class="btn btn-primary" ng-click="addBook(book)" ng-disabled="addBookForm.$invalid">Salvar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
