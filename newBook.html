@@ -25,21 +25,9 @@
     </style>
 
     <script>
-        angular.module("bookAdd", []);
-        angular.module("bookAdd").directive('ngFile', ['$parse', function ($parse) {
-            return {
-                restrict: 'A',
-                link: function(scope, element, attrs) {
-                    element.bind('change', function(){
+       var bookAddModule = angular.module("bookAdd", []);
 
-                        $parse(attrs.ngFile).assign(scope,element[0].files)
-                        scope.$apply();
-                    });
-                }
-            };
-        }]);
-
-        angular.module("bookAdd").controller("bookAddCtrl", function ($scope, $http) {
+       bookAddModule.controller("bookAddCtrl", function ($scope, $http) {
             scope = $scope; 
             scope.msg = "Adicionar Livro";
 
@@ -54,28 +42,25 @@
                 });
             }
 
-            scope.addBook = function (book){
+            $scope.addBook = function (book){
+                var file = scope.fileBook;
+                console.log(file);
                 formData = new FormData();
-                formData.append("image", scope.fileBook[0]);
-                let data = {book: book, formData: formData};
+                formData.append('file', file);
+                formData.append('book', JSON.stringify(book));
 
-                console.log(data);
-
-                /*$http.post('http://localhost:8000/api/v1/saveBooks', 
-                    params: {
-                        book: book, 
-                    },
-                    {
-                    headers: {
-                        'Authorization': 'Bearer 123456'
-                    }
+                console.log(formData);
+                
+                $http.post("http://localhost:8000/api/v1/saveBooks", formData, {
+                    transformRequest: angular.identity,
+                    headers: { 'Content-Type': undefined,  'Authorization': 'Bearer 123456'}
                 }).then(function(result) {
                     delete scope.book;
                     scope.addBookForm.$setPristine();
                     console.log(result);
                 }).catch(function(result) {
                     console.log(result.data);
-                });*/
+                });
             };
 
             $('#input_file').change(function() {
@@ -84,6 +69,18 @@
 
             listAuthors();
         })
+        bookAddModule.directive('ngFile', ['$parse', function ($parse) {
+            return {
+                restrict: 'A',
+                link: function(scope, element, attrs) {
+                    element.bind('change', function(){
+                        
+                        $parse(attrs.ngFile).assign(scope,element[0].files[0])
+                        scope.$apply();
+                    });
+                }
+            };
+        }]);
     </script>
 </head>
 <body ng-controller="bookAddCtrl">
@@ -95,7 +92,7 @@
                         <li class="active" style="color:#616161; font-weight:bold" ng-bind="msg | uppercase"></li>
                     </ol>
                     <div class="panel-body">
-                        <form name="addBookForm" method="POST" enctype="multipart/form-data">
+                        <form id="form" name="addBookForm" method="POST" enctype="multipart/form-data">
                             <div class="alert alert-danger" ng-show="addBookForm.title.$error.required && addBookForm.title.$dirty">
                                 Preencha o Título, por favor
                             </div>
@@ -136,7 +133,7 @@
                             </div>
                            
                             <br />
-                            <button class="btn btn-primary" ng-click="addBook(book)" ng-disabled="addBookForm.$invalid">Salvar</button>
+                            <button type="submit" class="btn btn-primary" ng-click="addBook(book)" ng-disabled="addBookForm.$invalid">Salvar</button>
                         </form>
                     </div>
                 </div>
