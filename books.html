@@ -5,6 +5,17 @@
     <title>Document</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.css">
+    <!--script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.js"></script-->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular-aria.min.js"></script>
+    <!-- Angular Material Library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.js"></script>
+    <!-- Your application bootstrap -->
+    
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="lib/angular.js"></script>
     <style>
         .checked{
@@ -13,8 +24,8 @@
     </style>
 
     <script>
-        angular.module("bookList", []);
-        angular.module("bookList").controller("bookListCtrl", function ($scope, $filter, uppercaseFilter, $http) {
+        angular.module("bookList", ['ngMaterial'])
+        .controller("bookListCtrl", function ($scope, $filter, uppercaseFilter, $http, $mdDialog) {
             scope = $scope; 
             scope.msg = "Livros";
 
@@ -61,10 +72,52 @@
             }
 
             listBooks();
+
+            $scope.status = 'veja';
+            $scope.customFullscreen = false;
+
+            $scope.showAdvanced = function(ev) {
+                var element = angular.element(ev.target);
+                $mdDialog.show({
+                    locals:{image: element[0].src},
+                    controller: DialogController,
+                    templateUrl: 'dialogImage.html',
+                    parent: angular.element(document.body),
+                    targetEvent: ev,
+                    clickOutsideToClose:true,
+                    fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
+                })
+                // .then(function(answer) {
+                //     $scope.status = 'You said the information was "' + answer + '".';
+                // }, function() {
+                //     $scope.status = 'You cancelled the dialog.';
+                // });
+            };
+
+            function DialogController($scope, $mdDialog, image) {
+                $scope.image = image;
+
+                $scope.ok = function() {
+                    $mdDialog.hide();
+                }
+            }
         })
     </script>
 </head>
 <body ng-controller="bookListCtrl">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="books.html">BibliotecAí</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+            <a class="nav-item nav-link" href="authors.html">Autores</a>
+            <a class="nav-item nav-link" href="books.html">Livros</a>
+            <a class="nav-item nav-link" href="lendings.html">Empréstimos</a>
+            </div>
+        </div>
+    </nav>
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
@@ -95,7 +148,7 @@
                                 <td><input type="checkbox" ng-model="book.selecionado"/></td>
                                 <td id="code" scope="row">{{ book.id }}</td>
                                 <td class="text-center ">
-                                    <img onclick="" src="C:/xampp/htdocs/biblioteca/public/images/book/{{ book.image }}" width="100%" style="cursor:pointer" />
+                                    <img ng-click="showAdvanced($event)" src="{{'http://localhost:8000/storage/book/' + book.image}}" width="100%" style="cursor:pointer" />
                                 </td>
                                 <td id="booktitle">{{ book.title }}</td>
                                 <td>{{ book.description }}</td>
@@ -111,6 +164,54 @@
             </div>
         </div>
     <br/> 
+    <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModal" aria-hidden="true">
+        <div class="modal-dialog" style="width: 400px; height: 400px;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+              <h4 class="modal-title" id="myModal">Capa do Livro</h4>
+            </div>
+            <div class="modal-body" >
+              <img src="" id="imagepreview" style="width: 350px; height: 400px;" >
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+    </div>
+  
     <div ng-include="'footer.html'"></div>
 </body>
 </html>
+<script>
+    function action(e){ 
+        let id = $(e).parent().siblings("#code").html();
+        let image = $(e).parent().siblings("#image").data( "image" );
+        $("#btnOk").attr("onclick", "remove("+id+",'"+image+"')");
+        let book = $(e).parent().siblings("#booktitle").html();
+        $("#book").html(book);
+        $('#indexModal').modal('show');
+    }
+    function remove(id, image){ 
+        $.ajax({
+            type: "post",
+            url: "",
+            async: false,
+            headers: {},
+            data : { id: id, image: image },
+            success: function (data) {
+                console.log(data);
+                window.location.href = data.html;
+            },
+            error: function(data) {
+                console.log(data);
+            }
+        });
+    }
+    function enlargeCover(e){ 
+        $('#imagepreview').attr('src', $(e).attr('src'));
+        $('#myModal').html($(e).parent().siblings("#booktitle").html());
+        $('#imagemodal').modal('show'); 
+    };
+</script>
