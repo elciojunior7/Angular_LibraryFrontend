@@ -2,7 +2,7 @@
 <html ng-app="bookList">
 <head>
     <meta charset="UTF-8">
-    <title>Document</title>
+    <title>BibliotecAí</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.css">
@@ -101,6 +101,30 @@
                     $mdDialog.hide();
                 }
             }
+
+            // function action(e){ 
+            //     let id = $(e).parent().siblings("#code").html();
+            //     let image = $(e).parent().siblings("#image").data( "image" );
+            //     $("#btnOk").attr("onclick", "remove("+id+",'"+image+"')");
+            //     let book = $(e).parent().siblings("#booktitle").html();
+            //     $("#book").html(book);
+            //     $('#indexModal').modal('show');
+            // }
+            // function remove(id, image){ 
+            $scope.remove = function (book){
+                $http.delete('http://localhost:8000/api/v1/removeBook/'+ book.id, {
+                    headers: {
+                        'Authorization': 'Bearer 123456'
+                    }
+                }).then(function(result) {
+                    console.log(result);
+                    window.location.href = result.data.html;
+                    
+                }).catch(function(result) {
+                    console.log(result.data);
+                });
+            }
+
         })
     </script>
 </head>
@@ -153,8 +177,8 @@
                                 <td id="booktitle">{{ book.title }}</td>
                                 <td>{{ book.description }}</td>
                                 <td width="155">
-                                    <button onclick="" type="button" class="btn btn-primary btn-sm"><i class="fa fa-pencil"></i></button>
-                                    <button onclick="" type="button" class="btn btn-danger btn-sm" ><i class="fa fa-trash"></i></button>
+                                    <a href="editBook.html?id={{book.id}}" class="btn btn-primary btn-sm"><i class="fa fa-pencil"></i></a>
+                                    <button ng-click="remove(book)" type="button" class="btn btn-danger btn-sm" ><i class="fa fa-trash"></i></button>
                                 </td>
                             </tr>
                         </table>
@@ -164,54 +188,7 @@
             </div>
         </div>
     <br/> 
-    <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModal" aria-hidden="true">
-        <div class="modal-dialog" style="width: 400px; height: 400px;">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-              <h4 class="modal-title" id="myModal">Capa do Livro</h4>
-            </div>
-            <div class="modal-body" >
-              <img src="" id="imagepreview" style="width: 350px; height: 400px;" >
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-          </div>
-        </div>
-    </div>
   
     <div ng-include="'footer.html'"></div>
 </body>
 </html>
-<script>
-    function action(e){ 
-        let id = $(e).parent().siblings("#code").html();
-        let image = $(e).parent().siblings("#image").data( "image" );
-        $("#btnOk").attr("onclick", "remove("+id+",'"+image+"')");
-        let book = $(e).parent().siblings("#booktitle").html();
-        $("#book").html(book);
-        $('#indexModal').modal('show');
-    }
-    function remove(id, image){ 
-        $.ajax({
-            type: "post",
-            url: "",
-            async: false,
-            headers: {},
-            data : { id: id, image: image },
-            success: function (data) {
-                console.log(data);
-                window.location.href = data.html;
-            },
-            error: function(data) {
-                console.log(data);
-            }
-        });
-    }
-    function enlargeCover(e){ 
-        $('#imagepreview').attr('src', $(e).attr('src'));
-        $('#myModal').html($(e).parent().siblings("#booktitle").html());
-        $('#imagemodal').modal('show'); 
-    };
-</script>
