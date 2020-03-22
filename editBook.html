@@ -1,109 +1,30 @@
 <!DOCTYPE html>
 <html ng-app="bookEdit">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8" />
     <title>BibliotecAí</title>
+    <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.css">
+    <!--script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.js"></script-->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular-aria.min.js"></script>
+    <!-- Angular Material Library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.js"></script>
+    <!-- Your application bootstrap -->
+
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="lib/angular.js"></script>
-    <style>
-        input[type='file'] {
-            display: none
-        }
-        .input-wrapper label {
-            background-color: #3498db;
-            border-radius: 5px;
-            color: #fff;
-            margin: 10px;
-            padding: 6px 20px
-        }
+    <script src="js/app.js"></script>
+    <script src="js/controllers/bookEditCtrl.js"></script>
+    <script src="js/directives/fileDirective.js"></script>
 
-        .input-wrapper label:hover {
-            background-color: #2980b9
-        }
-    </style>
-
-    <script>
-       var bookEditModule = angular.module("bookEdit", []);
-
-       bookEditModule.controller("bookEditCtrl", function ($scope, $http, $location) {
-            scope = $scope; 
-            scope.msg = "Editar Livro";
-            let urlParams = new URLSearchParams(window.location.search);
-            let id = urlParams.get('id');
-            let delete_image = "";
-
-            var findBook = function(){
-                $http.get('http://localhost:8000/api/v1/editBook/'+id, {
-                    headers: {
-                        'Authorization': 'Bearer 123456'
-                    }
-                }).then(function(result) {
-                    console.log(result);
-                    $scope.book = result.data.book;
-                    $scope.authors = result.data.authors;
-                    $scope.selecteds_author = result.data.selecteds_author;
-                    delete_image = result.data.book.image;
-                    
-                }).catch(function(result) {
-                    console.log(result.data);
-                });
-            }
-            
-            $('#input_file').change(function() {
-                $('#file_name').html(this.value);
-            });
-
-            $scope.editBook = function (){
-                var file = scope.fileBook;
-                console.log(file);
-                formData = new FormData();
-                $scope.book.authors = $scope.selecteds_author;
-                formData.append('file', file);
-                formData.append('book', JSON.stringify($scope.book));
-                formData.append('delete_image', delete_image);  
-                                
-                $http.post("http://localhost:8000/api/v1/updateBook/"+id, formData, {
-                    transformRequest: angular.identity,
-                    headers: { 'Content-Type': undefined,  'Authorization': 'Bearer 123456'}
-                }).then(function(result) {
-                    window.location.href = result.data.html;
-                }).catch(function(result) {
-                    console.log(result.data);
-                });
-            };
-
-            findBook();
-        })
-        bookEditModule.directive('ngFile', ['$parse', function ($parse) {
-            return {
-                restrict: 'A',
-                link: function(scope, element, attrs) {
-                    element.bind('change', function(){
-                        
-                        $parse(attrs.ngFile).assign(scope,element[0].files[0])
-                        scope.$apply();
-                    });
-                }
-            };
-        }]);
-    </script>
 </head>
 <body ng-controller="bookEditCtrl">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="books.html">BibliotecAí</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-            <a class="nav-item nav-link" href="authors.html">Autores</a>
-            <a class="nav-item nav-link" href="books.html">Livros</a>
-            <a class="nav-item nav-link" href="lendings.html">Empréstimos</a>
-            </div>
-        </div>
-    </nav>
+    <ng-include src="'view/menu.html'"></ng-include>
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">

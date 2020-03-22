@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html ng-app="bookList">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8" />
     <title>BibliotecAí</title>
+    <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.css">
@@ -14,134 +15,15 @@
     <!-- Angular Material Library -->
     <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.js"></script>
     <!-- Your application bootstrap -->
-    
+
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="lib/angular.js"></script>
-    <style>
-        .checked{
-            background-color: yellow;
-        }
-    </style>
+    <script src="js/app.js"></script>
+    <script src="js/controllers/bookListCtrl.js"></script>
 
-    <script>
-        angular.module("bookList", ['ngMaterial'])
-        .controller("bookListCtrl", function ($scope, $filter, uppercaseFilter, $http, $mdDialog) {
-            scope = $scope; 
-            scope.msg = "Livros";
-
-            var listBooks = function(){
-                $http.get('http://localhost:8000/api/v1/books', {
-                    headers: {
-                        'Authorization': 'Bearer 123456'
-                    }
-                }).then(function(result) {
-                    console.log(result);
-                    $scope.books = result.data;
-                });
-            }
-
-            scope.addBook = function (book){
-                $http.post('http://localhost:8000/api/v1/save_books', 
-                    book, 
-                    {
-                    headers: {
-                        'Authorization': 'Bearer 123456'
-                    }
-                }).then(function(result) {
-                    scope.books.push(result.data);
-                    delete scope.book;
-                    //scope.contatoForm.$setPristine();
-                    console.log(result);
-                }).catch(function(result) {
-                    console.log(result.data);
-                });
-            };
-            scope.removeBook = function (contatos){
-                scope.books = books.filter(function (book){
-                    if(!book.selecionado) return book;               
-                });
-            };
-            scope.isBookSelected = function (book) {
-                return book.some(function (book){
-                    return book.selecionado;
-                });
-            }
-            $scope.ordenarPor = function(campo){
-                $scope.criterio = campo;
-                $scope.reverse = !$scope.reverse;
-            }
-
-            listBooks();
-
-            $scope.status = 'veja';
-            $scope.customFullscreen = false;
-
-            $scope.showAdvanced = function(ev) {
-                var element = angular.element(ev.target);
-                $mdDialog.show({
-                    locals:{image: element[0].src},
-                    controller: DialogController,
-                    templateUrl: 'dialogImage.html',
-                    parent: angular.element(document.body),
-                    targetEvent: ev,
-                    clickOutsideToClose:true,
-                    fullscreen: $scope.customFullscreen // Only for -xs, -sm breakpoints.
-                })
-                // .then(function(answer) {
-                //     $scope.status = 'You said the information was "' + answer + '".';
-                // }, function() {
-                //     $scope.status = 'You cancelled the dialog.';
-                // });
-            };
-
-            function DialogController($scope, $mdDialog, image) {
-                $scope.image = image;
-
-                $scope.ok = function() {
-                    $mdDialog.hide();
-                }
-            }
-
-            // function action(e){ 
-            //     let id = $(e).parent().siblings("#code").html();
-            //     let image = $(e).parent().siblings("#image").data( "image" );
-            //     $("#btnOk").attr("onclick", "remove("+id+",'"+image+"')");
-            //     let book = $(e).parent().siblings("#booktitle").html();
-            //     $("#book").html(book);
-            //     $('#indexModal').modal('show');
-            // }
-            // function remove(id, image){ 
-            $scope.remove = function (book){
-                $http.delete('http://localhost:8000/api/v1/removeBook/'+ book.id, {
-                    headers: {
-                        'Authorization': 'Bearer 123456'
-                    }
-                }).then(function(result) {
-                    console.log(result);
-                    window.location.href = result.data.html;
-                    
-                }).catch(function(result) {
-                    console.log(result.data);
-                });
-            }
-
-        })
-    </script>
 </head>
 <body ng-controller="bookListCtrl">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="books.html">BibliotecAí</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-            <a class="nav-item nav-link" href="authors.html">Autores</a>
-            <a class="nav-item nav-link" href="books.html">Livros</a>
-            <a class="nav-item nav-link" href="lendings.html">Empréstimos</a>
-            </div>
-        </div>
-    </nav>
+    <ng-include src="'view/menu.html'"></ng-include>
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
@@ -189,6 +71,6 @@
         </div>
     <br/> 
   
-    <div ng-include="'footer.html'"></div>
+    <div ng-include="'view/footer.html'"></div>
 </body>
 </html>
